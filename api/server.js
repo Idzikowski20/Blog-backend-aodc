@@ -1,7 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
-const Blog = require("./models/Blog");
+const Blog = require("../models/Blog");
 const cors = require("cors");
 const multer = require("multer");
 const { v2: cloudinary } = require("cloudinary");
@@ -124,13 +124,15 @@ app.delete("/api/blogs/:id", async (req, res) => {
   }
 });
 
-// 🚀 Połączenie z MongoDB i uruchomienie serwera
+// 🚀 Połączenie z MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
   .then(() => {
     console.log("✅ Połączono z MongoDB");
-    app.listen(PORT, () => console.log(`🚀 Serwer działa na porcie ${PORT}`));
   })
   .catch((err) => console.error("❌ Błąd połączenia z MongoDB:", err));
+
+// Eksportowanie aplikacji jako funkcji
+module.exports = app;
