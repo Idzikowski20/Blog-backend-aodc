@@ -8,7 +8,6 @@ const { v2: cloudinary } = require("cloudinary");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
 // 🛡️ Middleware
 app.use(cors({ origin: "*" }));
