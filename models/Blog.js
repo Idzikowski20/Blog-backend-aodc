@@ -7,7 +7,7 @@ const blogSchema = new mongoose.Schema(
     image: { type: String },
     tags: [String],
   },
-  { timestamps: true } // 👈 Dodaj to, jeśli brakowało
+  { timestamps: true } 
 );
 
 module.exports = mongoose.model('Blog', blogSchema);
