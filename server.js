@@ -1,7 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
-const Blog = require("../models/Blog");
+const Blog = require("./models/Blog");
 const cors = require("cors");
 const multer = require("multer");
 const { v2: cloudinary } = require("cloudinary");
