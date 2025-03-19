@@ -45,20 +45,11 @@ app.get("/", (req, res) => {
 app.post("/api/blogs", upload.single("image"), async (req, res) => {
   try {
     const { title, content, tags } = req.body;
-
     if (!title || !content) return res.status(400).json({ message: "❌ Brak tytułu lub treści" });
 
     const parsedTags = tags ? JSON.parse(tags) : [];
     const imageUrl = req.file ? req.file.path : null;
-
-    // Załóżmy, że content jest obiektem z tłumaczeniami
-    const blog = new Blog({
-      title,
-      content: JSON.parse(content), // Zmieniamy treść na obiekt
-      image: imageUrl,
-      tags: parsedTags,
-    });
-
+    const blog = new Blog({ title, content, image: imageUrl, tags: parsedTags });
     const savedBlog = await blog.save();
 
     res.status(201).json(savedBlog);
@@ -68,39 +59,23 @@ app.post("/api/blogs", upload.single("image"), async (req, res) => {
   }
 });
 
-// 📄 Pobieranie wszystkich postów z tłumaczeniami
+// 📄 Pobieranie wszystkich postów
 app.get("/api/blogs", async (req, res) => {
   try {
-    const language = req.query.lang || "en"; // Domyślnie język angielski
     const blogs = await Blog.find().sort({ createdAt: -1 });
-
-    // Przekształcamy posty, aby zawierały tylko tłumaczenie w żądanym języku
-    const translatedBlogs = blogs.map(blog => ({
-      ...blog.toObject(),
-      title: blog.title,
-      content: blog.content[language] || blog.content["en"], // Wybór tłumaczenia
-    }));
-
-    res.json(translatedBlogs);
+    res.json(blogs);
   } catch (err) {
     console.error("❌ Błąd pobierania postów:", err);
     res.status(500).json({ message: "❌ Błąd serwera przy pobieraniu postów" });
   }
 });
 
-// 📄 Pobieranie posta po ID z tłumaczeniem
+// 📄 Pobieranie posta po ID
 app.get("/api/blogs/:id", async (req, res) => {
   try {
-    const language = req.query.lang || "en"; // Domyślnie język angielski
     const blog = await Blog.findById(req.params.id);
-
     if (!blog) return res.status(404).json({ message: "❌ Post nie znaleziony" });
-
-    res.json({
-      ...blog.toObject(),
-      title: blog.title,
-      content: blog.content[language] || blog.content["en"], // Wybór tłumaczenia
-    });
+    res.json(blog);
   } catch (err) {
     console.error("❌ Błąd pobierania posta:", err);
     res.status(500).json({ message: "❌ Błąd serwera" });
@@ -109,15 +84,19 @@ app.get("/api/blogs/:id", async (req, res) => {
 
 // ✏️ Aktualizacja posta
 app.put("/api/blogs/:id", upload.single("image"), async (req, res) => {
+  // Sprawdzamy, czy plik nie jest za duży
+  if (req.file && req.file.size > 50 * 1024 * 1024) {
+    return res.status(400).json({ message: "❌ Plik jest za duży. Maksymalny rozmiar to 50 MB." });
+  }
+
   try {
     const { title, content, tags } = req.body;
-
     if (!title || !content) return res.status(400).json({ message: "❌ Brak tytułu lub treści" });
 
     const parsedTags = tags ? JSON.parse(tags) : [];
-    const updatedData = { title, content: JSON.parse(content), tags: parsedTags };
-
+    const updatedData = { title, content, tags: parsedTags };
     if (req.file) {
+      console.log("Plik obrazu:", req.file); // Logowanie przesyłanego pliku
       updatedData.image = req.file.path;
     }
 
