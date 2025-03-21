@@ -53,16 +53,16 @@ app.post("/api/blogs", upload.single("image"), async (req, res) => {
       return res.status(400).json({ message: "❌ Brak tytułu lub treści" });
     }
 
-    const { title, content, contentEng, tags } = req.body;
+    const { title, content, tags, contentEng } = req.body;
     const parsedTags = tags ? JSON.parse(tags) : [];
     const imageUrl = req.file ? req.file.path : null;
 
     const blog = new Blog({
       title,
       content,
-      contentEng,
       image: imageUrl,
       tags: parsedTags,
+      contentEng,
     });
 
     const savedBlog = await blog.save();
