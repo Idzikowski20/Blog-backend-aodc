@@ -44,13 +44,11 @@ app.get("/", (req, res) => {
 
 // 📝 Tworzenie posta
 app.post("/api/blogs", upload.single("image"), async (req, res) => {
+  console.log("Otrzymane dane na backendzie:", req.body); // Debugowanie
   try {
-    console.log("Otrzymane dane:", req.body); // DEBUGOWANIE
-
-
     const { title, content, contentEng, tags } = req.body;
     if (!title || !content || !contentEng) {
-      return res.status(400).json({ message: "❌ Brak tytułu, treści PL lub EN" });
+      return res.status(400).json({ message: "❌ Brak wymaganych pól" });
     }
 
     const parsedTags = tags ? JSON.parse(tags) : [];
