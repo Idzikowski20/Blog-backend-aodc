@@ -11,7 +11,9 @@ const app = express();
 
 // 🛡️ Middleware
 app.use(cors({ origin: "*" }));
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true }));
+
 
 // 🌩️ Konfiguracja Cloudinary
 cloudinary.config({
@@ -43,6 +45,9 @@ app.get("/", (req, res) => {
 // 📝 Tworzenie posta
 app.post("/api/blogs", upload.single("image"), async (req, res) => {
   try {
+    console.log("Otrzymane dane:", req.body); // DEBUGOWANIE
+
+
     const { title, content, contentEng, tags } = req.body;
     if (!title || !content || !contentEng) {
       return res.status(400).json({ message: "❌ Brak tytułu, treści PL lub EN" });
