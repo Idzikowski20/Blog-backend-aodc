@@ -124,26 +124,36 @@ app.delete("/api/blogs/:id", async (req, res) => {
   }
 });
 
-// Funkcja tłumaczenia tekstów przy pomocy LibreTranslate API
-app.post("/api/translate", async (req, res) => {
-  const { text, targetLang } = req.body;
+// Funkcja tłumaczenia z pamięcią podręczną
+export const translateTextWithCache = async (text, targetLang) => {
+  const cacheKey = `${targetLang}-${text.slice(0, 50)}`;  // Unikalny klucz cache na podstawie języka i pierwszych 50 znaków tekstu
 
+  // Sprawdzamy, czy przetłumaczone teksty są już w cache
+  const cachedTranslation = localStorage.getItem(cacheKey);
+  if (cachedTranslation) {
+    console.log('Znaleziono tłumaczenie w cache');
+    return cachedTranslation;
+  }
+
+  // Jeśli brak w cache, wykonujemy zapytanie do API
   try {
-    const response = await axios.post('https://libretranslate.com/translate', {
+    const response = await axios.post('https://libretranslate.de/translate', {
       q: text,
-      source: 'en',  // Możesz ustawić dynamicznie
+      source: 'en',  // Źródłowy język, w tym przypadku angielski
       target: targetLang,
-      format: 'text'
+      format: 'text',
     });
-    
-    res.json({
-      translatedText: response.data.translatedText,
-    });
+
+    const translatedText = response.data.translatedText;
+
+    // Zapisujemy przetłumaczone teksty w localStorage
+    localStorage.setItem(cacheKey, translatedText);
+    return translatedText;
   } catch (error) {
     console.error('Błąd tłumaczenia:', error);
-    res.status(500).json({ message: "❌ Błąd tłumaczenia" });
+    return text;  // Zwracamy oryginalny tekst w przypadku błędu
   }
-});
+};
 
 // 🚀 Połączenie z MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
