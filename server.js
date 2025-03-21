@@ -44,9 +44,11 @@ app.get("/", (req, res) => {
 
 // 📝 Tworzenie posta
 app.post("/api/blogs", upload.single("image"), async (req, res) => {
-  try {
-    console.log("📥 Otrzymane dane w backendzie:", req.body); // LOGUJEMY PRZEKAZANE DANE
+  console.log("📥 Otrzymane dane w backendzie:");
+  console.log("req.body:", req.body);
+  console.log("req.file:", req.file);
 
+  try {
     const { title, content, contentEng, tags } = req.body;
     if (!title || !content) return res.status(400).json({ message: "❌ Brak tytułu lub treści" });
 
@@ -56,13 +58,13 @@ app.post("/api/blogs", upload.single("image"), async (req, res) => {
     const blog = new Blog({
       title,
       content,
-      contentEng, // Sprawdzamy, czy przechodzi do MongoDB
+      contentEng,
       image: imageUrl,
       tags: parsedTags,
     });
 
     const savedBlog = await blog.save();
-    console.log("✅ Zapisano post w MongoDB:", savedBlog); // LOGUJEMY ZAPISANY OBIEKT
+    console.log("✅ Zapisano post w MongoDB:", savedBlog);
 
     res.status(201).json(savedBlog);
   } catch (err) {
