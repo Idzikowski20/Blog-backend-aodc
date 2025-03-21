@@ -44,18 +44,24 @@ app.get("/", (req, res) => {
 
 // 📝 Tworzenie posta
 app.post("/api/blogs", upload.single("image"), async (req, res) => {
-  console.log("Otrzymane dane na backendzie:", req.body); // Debugowanie
   try {
+    console.log("📥 Otrzymane dane:", req.body); // <-- Sprawdza, czy backend odbiera `contentEng`
+
     const { title, content, contentEng, tags } = req.body;
-    if (!title || !content || !contentEng) {
-      return res.status(400).json({ message: "❌ Brak wymaganych pól" });
-    }
+    if (!title || !content) return res.status(400).json({ message: "❌ Brak tytułu lub treści" });
 
     const parsedTags = tags ? JSON.parse(tags) : [];
     const imageUrl = req.file ? req.file.path : null;
-    const blog = new Blog({ title, content, contentEng, image: imageUrl, tags: parsedTags });
-    const savedBlog = await blog.save();
 
+    const blog = new Blog({
+      title,
+      content,
+      contentEng,  // <-- Czy na pewno dodajemy do modelu?
+      image: imageUrl,
+      tags: parsedTags,
+    });
+
+    const savedBlog = await blog.save();
     res.status(201).json(savedBlog);
   } catch (err) {
     console.error("❌ Błąd tworzenia posta:", err);
