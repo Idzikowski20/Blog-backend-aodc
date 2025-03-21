@@ -44,14 +44,16 @@ app.get("/", (req, res) => {
 
 // 📝 Tworzenie posta
 app.post("/api/blogs", upload.single("image"), async (req, res) => {
-  console.log("📥 Otrzymane dane w backendzie:");
-  console.log("req.body:", req.body);
-  console.log("req.file:", req.file);
-
   try {
-    const { title, content, contentEng, tags } = req.body;
-    if (!title || !content) return res.status(400).json({ message: "❌ Brak tytułu lub treści" });
+    console.log("📥 OTRZYMANY REQUEST BODY:", JSON.stringify(req.body, null, 2));
+    console.log("📸 OTRZYMANY PLIK:", req.file);
 
+    if (!req.body.title || !req.body.content) {
+      console.error("❌ Brak tytułu lub treści!");
+      return res.status(400).json({ message: "❌ Brak tytułu lub treści" });
+    }
+
+    const { title, content, contentEng, tags } = req.body;
     const parsedTags = tags ? JSON.parse(tags) : [];
     const imageUrl = req.file ? req.file.path : null;
 
@@ -64,11 +66,11 @@ app.post("/api/blogs", upload.single("image"), async (req, res) => {
     });
 
     const savedBlog = await blog.save();
-    console.log("✅ Zapisano post w MongoDB:", savedBlog);
+    console.log("✅ POST ZAPISANY W MONGO:", savedBlog);
 
     res.status(201).json(savedBlog);
   } catch (err) {
-    console.error("❌ Błąd tworzenia posta:", err);
+    console.error("❌ BŁĄD BACKENDU:", err);
     res.status(500).json({ message: "❌ Błąd serwera" });
   }
 });
