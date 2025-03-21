@@ -85,6 +85,7 @@ app.get("/api/blogs/:id", async (req, res) => {
 
 // ✏️ Aktualizacja posta
 app.put("/api/blogs/:id", upload.single("image"), async (req, res) => {
+  // Sprawdzamy, czy plik nie jest za duży
   if (req.file && req.file.size > 50 * 1024 * 1024) {
     return res.status(400).json({ message: "❌ Plik jest za duży. Maksymalny rozmiar to 50 MB." });
   }
@@ -96,6 +97,7 @@ app.put("/api/blogs/:id", upload.single("image"), async (req, res) => {
     const parsedTags = tags ? JSON.parse(tags) : [];
     const updatedData = { title, content, tags: parsedTags };
     if (req.file) {
+      console.log("Plik obrazu:", req.file); // Logowanie przesyłanego pliku
       updatedData.image = req.file.path;
     }
 
@@ -122,6 +124,27 @@ app.delete("/api/blogs/:id", async (req, res) => {
   }
 });
 
+// Funkcja tłumaczenia tekstów przy pomocy LibreTranslate API
+app.post("/api/translate", async (req, res) => {
+  const { text, targetLang } = req.body;
+
+  try {
+    const response = await axios.post('https://libretranslate.com/translate', {
+      q: text,
+      source: 'en',  // Możesz ustawić dynamicznie
+      target: targetLang,
+      format: 'text'
+    });
+    
+    res.json({
+      translatedText: response.data.translatedText,
+    });
+  } catch (error) {
+    console.error('Błąd tłumaczenia:', error);
+    res.status(500).json({ message: "❌ Błąd tłumaczenia" });
+  }
+});
+
 // 🚀 Połączenie z MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
@@ -131,24 +154,6 @@ mongoose.connect(process.env.MONGODB_URI, {
     console.log("✅ Połączono z MongoDB");
   })
   .catch((err) => console.error("❌ Błąd połączenia z MongoDB:", err));
-
-// ✨ Tłumaczenie z Deepl — Endpoint pośredniczący
-app.post("/api/translate", async (req, res) => {
-  const { text, target_lang } = req.body;
-
-  try {
-    const response = await axios.post('https://api-free.deepl.com/v2/translate', {
-      auth_key: process.env.DEEPL_API_KEY,  // Użyj swojego klucza API Deepl
-      text: text,
-      target_lang: target_lang,
-    });
-
-    res.json({ translatedText: response.data.translations[0].text });
-  } catch (error) {
-    console.error('Błąd tłumaczenia:', error);
-    res.status(500).json({ message: 'Błąd tłumaczenia' });
-  }
-});
 
 // Eksportowanie aplikacji jako funkcji
 module.exports = app;
