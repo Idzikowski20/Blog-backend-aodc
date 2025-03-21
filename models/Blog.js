@@ -4,7 +4,7 @@ const blogSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
     content: { type: String, required: true }, // Polska wersja
-    contentEng: { type: String }, // Angielska wersja
+    contentEng: { type: String, required: true }, // Angielska wersja
     image: { type: String },
     tags: [String],
   },

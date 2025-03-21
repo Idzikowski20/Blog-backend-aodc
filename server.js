@@ -30,7 +30,6 @@ const storage = new CloudinaryStorage({
   },
 });
 
-// Ustawienie limitu rozmiaru pliku na 50 MB (50 * 1024 * 1024)
 const upload = multer({
   storage,
   limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB
@@ -45,7 +44,9 @@ app.get("/", (req, res) => {
 app.post("/api/blogs", upload.single("image"), async (req, res) => {
   try {
     const { title, content, contentEng, tags } = req.body;
-    if (!title || !content) return res.status(400).json({ message: "❌ Brak tytułu lub treści" });
+    if (!title || !content || !contentEng) {
+      return res.status(400).json({ message: "❌ Brak tytułu, treści PL lub EN" });
+    }
 
     const parsedTags = tags ? JSON.parse(tags) : [];
     const imageUrl = req.file ? req.file.path : null;
@@ -58,7 +59,6 @@ app.post("/api/blogs", upload.single("image"), async (req, res) => {
     res.status(500).json({ message: "❌ Błąd serwera" });
   }
 });
-
 
 // 📄 Pobieranie wszystkich postów
 app.get("/api/blogs", async (req, res) => {
@@ -85,33 +85,28 @@ app.get("/api/blogs/:id", async (req, res) => {
 
 // ✏️ Aktualizacja posta
 app.put("/api/blogs/:id", upload.single("image"), async (req, res) => {
-  // Sprawdzamy, czy plik nie jest za duży
-  if (req.file && req.file.size > 50 * 1024 * 1024) {
-    return res.status(400).json({ message: "❌ Plik jest za duży. Maksymalny rozmiar to 50 MB." });
-  }
-
   try {
     const { title, content, contentEng, tags } = req.body;
-    if (!title || !content) return res.status(400).json({ message: "❌ Brak tytułu lub treści" });
+    if (!title || !content || !contentEng) {
+      return res.status(400).json({ message: "❌ Brak tytułu, treści PL lub EN" });
+    }
 
     const parsedTags = tags ? JSON.parse(tags) : [];
     const updatedData = { title, content, contentEng, tags: parsedTags };
     if (req.file) {
-      console.log("Plik obrazu:", req.file); // Logowanie przesyłanego pliku
+      console.log("Plik obrazu:", req.file);
       updatedData.image = req.file.path;
     }
 
     const updatedPost = await Blog.findByIdAndUpdate(req.params.id, updatedData, { new: true });
 
     if (!updatedPost) return res.status(404).json({ message: "❌ Post nie znaleziony" });
-
     res.json(updatedPost);
   } catch (err) {
     console.error("❌ Błąd aktualizacji posta:", err);
     res.status(500).json({ message: "❌ Błąd serwera przy aktualizacji posta" });
   }
 });
-
 
 // 🗑️ Usuwanie posta
 app.delete("/api/blogs/:id", async (req, res) => {
@@ -135,5 +130,4 @@ mongoose.connect(process.env.MONGODB_URI, {
   })
   .catch((err) => console.error("❌ Błąd połączenia z MongoDB:", err));
 
-// Eksportowanie aplikacji jako funkcji
 module.exports = app;
