@@ -9,10 +9,11 @@ const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
 const app = express();
 
-// 🛡️ Middleware - Konfiguracja CORS i obsługa JSON
+// 🛡️ Middleware
 app.use(cors({ origin: "*" }));
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+app.use(express.json({ limit: "50mb" })); // Wymusza odczyt JSON
+app.use(express.urlencoded({ extended: true, limit: "50mb" })); // Obsługuje formularze
+
 
 // 🌩️ Konfiguracja Cloudinary
 cloudinary.config({
@@ -36,37 +37,37 @@ const upload = multer({
   limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB
 });
 
-// ✅ ROUTE testowy — Sprawdzamy, czy serwer działa
+// ✅ ROUTE testowy — Render sprawdza ten endpoint!
 app.get("/", (req, res) => {
   res.send("✅ Serwer działa! Sprawdź dostępne endpointy.");
 });
 
 // 📝 Tworzenie posta
-app.post("/api/blogs", upload.single("image"), async (req, res) => {
-  console.log("📥 OTRZYMANY REQUEST BODY:", JSON.stringify(req.body, null, 2));
-  console.log("📸 OTRZYMANY PLIK:", req.file ? req.file.path : "Brak pliku");
-
+app.post("/api/blogs", upload.none(), async (req, res) => {
   try {
-    const { title, content, contentEng, tags } = req.body;
+    console.log("📥 OTRZYMANY REQUEST BODY:", JSON.stringify(req.body, null, 2));
+    console.log("📸 OTRZYMANY PLIK:", req.file);
 
-    if (!title || !content || !contentEng) {
-      console.error("❌ Brak tytułu, treści PL lub EN!");
-      return res.status(400).json({ message: "❌ Brak tytułu, treści PL lub EN" });
+    if (!req.body.title || !req.body.content) {
+      console.error("❌ Brak tytułu lub treści!");
+      return res.status(400).json({ message: "❌ Brak tytułu lub treści" });
     }
 
+    const { title, content, tags, contentEng } = req.body;
     const parsedTags = tags ? JSON.parse(tags) : [];
     const imageUrl = req.file ? req.file.path : null;
 
     const blog = new Blog({
       title,
       content,
-      contentEng, // 📌 KLUCZOWY ELEMENT
       image: imageUrl,
       tags: parsedTags,
+      contentEng,
     });
 
     const savedBlog = await blog.save();
     console.log("✅ POST ZAPISANY W MONGO:", savedBlog);
+
     res.status(201).json(savedBlog);
   } catch (err) {
     console.error("❌ BŁĄD BACKENDU:", err);
@@ -99,31 +100,22 @@ app.get("/api/blogs/:id", async (req, res) => {
 
 // ✏️ Aktualizacja posta
 app.put("/api/blogs/:id", upload.single("image"), async (req, res) => {
-  console.log("📥 REQUEST BODY (Aktualizacja):", JSON.stringify(req.body, null, 2));
-
-  if (req.file && req.file.size > 50 * 1024 * 1024) {
-    return res.status(400).json({ message: "❌ Plik jest za duży. Maksymalny rozmiar to 50 MB." });
-  }
-
   try {
     const { title, content, contentEng, tags } = req.body;
-
     if (!title || !content || !contentEng) {
-      return res.status(400).json({ message: "❌ Brak wymaganych danych!" });
+      return res.status(400).json({ message: "❌ Brak tytułu, treści PL lub EN" });
     }
 
     const parsedTags = tags ? JSON.parse(tags) : [];
     const updatedData = { title, content, contentEng, tags: parsedTags };
-
     if (req.file) {
-      console.log("📸 Aktualizacja obrazu:", req.file.path);
+      console.log("Plik obrazu:", req.file);
       updatedData.image = req.file.path;
     }
 
     const updatedPost = await Blog.findByIdAndUpdate(req.params.id, updatedData, { new: true });
 
     if (!updatedPost) return res.status(404).json({ message: "❌ Post nie znaleziony" });
-
     res.json(updatedPost);
   } catch (err) {
     console.error("❌ Błąd aktualizacji posta:", err);
@@ -153,5 +145,4 @@ mongoose.connect(process.env.MONGODB_URI, {
   })
   .catch((err) => console.error("❌ Błąd połączenia z MongoDB:", err));
 
-// Eksportowanie aplikacji
 module.exports = app;
