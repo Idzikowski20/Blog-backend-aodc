@@ -6,7 +6,6 @@ const cors = require("cors");
 const multer = require("multer");
 const { v2: cloudinary } = require("cloudinary");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
-const axios = require("axios");
 
 const app = express();
 
@@ -45,12 +44,12 @@ app.get("/", (req, res) => {
 // 📝 Tworzenie posta
 app.post("/api/blogs", upload.single("image"), async (req, res) => {
   try {
-    const { title, content, tags } = req.body;
+    const { title, content, contentEng, tags } = req.body;
     if (!title || !content) return res.status(400).json({ message: "❌ Brak tytułu lub treści" });
 
     const parsedTags = tags ? JSON.parse(tags) : [];
     const imageUrl = req.file ? req.file.path : null;
-    const blog = new Blog({ title, content, image: imageUrl, tags: parsedTags });
+    const blog = new Blog({ title, content, contentEng, image: imageUrl, tags: parsedTags });
     const savedBlog = await blog.save();
 
     res.status(201).json(savedBlog);
@@ -59,6 +58,7 @@ app.post("/api/blogs", upload.single("image"), async (req, res) => {
     res.status(500).json({ message: "❌ Błąd serwera" });
   }
 });
+
 
 // 📄 Pobieranie wszystkich postów
 app.get("/api/blogs", async (req, res) => {
@@ -91,11 +91,11 @@ app.put("/api/blogs/:id", upload.single("image"), async (req, res) => {
   }
 
   try {
-    const { title, content, tags } = req.body;
+    const { title, content, contentEng, tags } = req.body;
     if (!title || !content) return res.status(400).json({ message: "❌ Brak tytułu lub treści" });
 
     const parsedTags = tags ? JSON.parse(tags) : [];
-    const updatedData = { title, content, tags: parsedTags };
+    const updatedData = { title, content, contentEng, tags: parsedTags };
     if (req.file) {
       console.log("Plik obrazu:", req.file); // Logowanie przesyłanego pliku
       updatedData.image = req.file.path;
@@ -112,6 +112,7 @@ app.put("/api/blogs/:id", upload.single("image"), async (req, res) => {
   }
 });
 
+
 // 🗑️ Usuwanie posta
 app.delete("/api/blogs/:id", async (req, res) => {
   try {
@@ -123,37 +124,6 @@ app.delete("/api/blogs/:id", async (req, res) => {
     res.status(500).json({ message: "❌ Błąd serwera przy usuwaniu posta" });
   }
 });
-
-// Funkcja tłumaczenia z pamięcią podręczną
-export const translateTextWithCache = async (text, targetLang) => {
-  const cacheKey = `${targetLang}-${text.slice(0, 50)}`;  // Unikalny klucz cache na podstawie języka i pierwszych 50 znaków tekstu
-
-  // Sprawdzamy, czy przetłumaczone teksty są już w cache
-  const cachedTranslation = localStorage.getItem(cacheKey);
-  if (cachedTranslation) {
-    console.log('Znaleziono tłumaczenie w cache');
-    return cachedTranslation;
-  }
-
-  // Jeśli brak w cache, wykonujemy zapytanie do API
-  try {
-    const response = await axios.post('https://libretranslate.de/translate', {
-      q: text,
-      source: 'en',  // Źródłowy język, w tym przypadku angielski
-      target: targetLang,
-      format: 'text',
-    });
-
-    const translatedText = response.data.translatedText;
-
-    // Zapisujemy przetłumaczone teksty w localStorage
-    localStorage.setItem(cacheKey, translatedText);
-    return translatedText;
-  } catch (error) {
-    console.error('Błąd tłumaczenia:', error);
-    return text;  // Zwracamy oryginalny tekst w przypadku błędu
-  }
-};
 
 // 🚀 Połączenie z MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
