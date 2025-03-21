@@ -11,8 +11,8 @@ const app = express();
 
 // 🛡️ Middleware
 app.use(cors({ origin: "*" }));
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "50mb" })); // Wymusza odczyt JSON
+app.use(express.urlencoded({ extended: true, limit: "50mb" })); // Obsługuje formularze
 
 
 // 🌩️ Konfiguracja Cloudinary
@@ -43,7 +43,7 @@ app.get("/", (req, res) => {
 });
 
 // 📝 Tworzenie posta
-app.post("/api/blogs", upload.single("image"), async (req, res) => {
+app.post("/api/blogs", upload.none(), async (req, res) => {
   try {
     console.log("📥 OTRZYMANY REQUEST BODY:", JSON.stringify(req.body, null, 2));
     console.log("📸 OTRZYMANY PLIK:", req.file);
