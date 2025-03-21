@@ -45,7 +45,7 @@ app.get("/", (req, res) => {
 // 📝 Tworzenie posta
 app.post("/api/blogs", upload.single("image"), async (req, res) => {
   try {
-    console.log("📥 Otrzymane dane:", req.body); // <-- Sprawdza, czy backend odbiera `contentEng`
+    console.log("📥 Otrzymane dane w backendzie:", req.body); // Sprawdzamy dane, które przyszły
 
     const { title, content, contentEng, tags } = req.body;
     if (!title || !content) return res.status(400).json({ message: "❌ Brak tytułu lub treści" });
@@ -56,18 +56,20 @@ app.post("/api/blogs", upload.single("image"), async (req, res) => {
     const blog = new Blog({
       title,
       content,
-      contentEng,  // <-- Czy na pewno dodajemy do modelu?
+      contentEng,  // 👈 Czy na pewno przekazujemy do MongoDB?
       image: imageUrl,
       tags: parsedTags,
     });
 
     const savedBlog = await blog.save();
+    console.log("✅ Zapisano post w MongoDB:", savedBlog); // Sprawdzamy, co faktycznie zapisuje się w bazie
     res.status(201).json(savedBlog);
   } catch (err) {
     console.error("❌ Błąd tworzenia posta:", err);
     res.status(500).json({ message: "❌ Błąd serwera" });
   }
 });
+
 
 // 📄 Pobieranie wszystkich postów
 app.get("/api/blogs", async (req, res) => {
