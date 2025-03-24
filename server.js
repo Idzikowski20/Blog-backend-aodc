@@ -14,7 +14,6 @@ app.use(cors({ origin: "*" }));
 app.use(express.json({ limit: "50mb" })); // Wymusza odczyt JSON
 app.use(express.urlencoded({ extended: true, limit: "50mb" })); // Obsługuje formularze
 
-
 // 🌩️ Konfiguracja Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -59,7 +58,7 @@ app.post("/api/blogs", upload.none(), async (req, res) => {
     const blog = new Blog({
       title,
       content,
-      contentEng, 
+      contentEng,
       image: imageUrl,
       tags: parsedTags,
     });
@@ -134,14 +133,13 @@ app.delete("/api/blogs/:id", async (req, res) => {
   }
 });
 
-// 🚀 Połączenie z MongoDB
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+// 🚀 Połączenie z MongoDB (usunięcie przestarzałych opcji)
+mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
     console.log("✅ Połączono z MongoDB");
   })
-  .catch((err) => console.error("❌ Błąd połączenia z MongoDB:", err));
+  .catch((err) => {
+    console.error("❌ Błąd połączenia z MongoDB:", err);
+  });
 
 module.exports = app;
