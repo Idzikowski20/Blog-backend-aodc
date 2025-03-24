@@ -27,7 +27,9 @@ const storage = new CloudinaryStorage({
   params: {
     folder: "blogs",
     allowed_formats: ["jpg", "jpeg", "png", "webp"],
-    transformation: [{ width: 800, height: 600, crop: "limit" }],
+    transformation: [
+      { width: 2000, height: 2000, crop: "limit" }  // Zmieniamy rozdzielczość na 2000x2000
+    ],
   },
 });
 
