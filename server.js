@@ -133,8 +133,10 @@ app.delete("/api/blogs/:id", async (req, res) => {
   }
 });
 
+const uri = 'mongodb+srv://aodc:aodc@aodc.cq1hn.mongodb.net/?retryWrites=true&w=majority&appName=AODC';
+
 // 🚀 Połączenie z MongoDB (usunięcie przestarzałych opcji)
-mongoose.connect(process.env.MONGODB_URI)
+mongoose.connect(uri)
   .then(() => {
     console.log("✅ Połączono z MongoDB");
   })
