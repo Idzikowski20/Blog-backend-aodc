@@ -45,9 +45,9 @@ app.get("/", (req, res) => {
 app.post("/api/blogs", upload.none(), async (req, res) => {
   try {
     console.log("📥 OTRZYMANY REQUEST BODY:", req.body); // Logowanie całego body
-    const { title, content, contentEng, tags } = req.body;
+    const { title, titleEng, content, contentEng, tags } = req.body;
 
-    if (!title || !content || !contentEng) {
+    if (!title || !titleEng || !content || !contentEng) {
       console.error("❌ Brak tytułu lub treści!");
       return res.status(400).json({ message: "❌ Brak tytułu lub treści" });
     }
@@ -57,6 +57,7 @@ app.post("/api/blogs", upload.none(), async (req, res) => {
 
     const blog = new Blog({
       title,
+      titleEng,
       content,
       contentEng,
       image: imageUrl,
@@ -99,13 +100,13 @@ app.get("/api/blogs/:id", async (req, res) => {
 // ✏️ Aktualizacja posta
 app.put("/api/blogs/:id", upload.single("image"), async (req, res) => {
   try {
-    const { title, content, contentEng, tags } = req.body;
-    if (!title || !content || !contentEng) {
+    const { title, titleEng , content, contentEng, tags } = req.body;
+    if (!title || !titleEng || !content || !contentEng) {
       return res.status(400).json({ message: "❌ Brak tytułu, treści PL lub EN" });
     }
 
     const parsedTags = tags ? JSON.parse(tags) : [];
-    const updatedData = { title, content, contentEng, tags: parsedTags };
+    const updatedData = { title, titleEng, content, contentEng, tags: parsedTags };
     if (req.file) {
       console.log("Plik obrazu:", req.file);
       updatedData.image = req.file.path;
