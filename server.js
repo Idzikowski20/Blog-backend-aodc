@@ -45,24 +45,23 @@ app.get("/", (req, res) => {
 // 📝 Tworzenie posta
 app.post("/api/blogs", upload.none(), async (req, res) => {
   try {
-    console.log("📥 OTRZYMANY REQUEST BODY:", JSON.stringify(req.body, null, 2));
-    console.log("📸 OTRZYMANY PLIK:", req.file);
+    console.log("📥 OTRZYMANY REQUEST BODY:", req.body); // Logowanie całego body
+    const { title, content, contentEng, tags } = req.body;
 
-    if (!req.body.title || !req.body.content) {
+    if (!title || !content || !contentEng) {
       console.error("❌ Brak tytułu lub treści!");
       return res.status(400).json({ message: "❌ Brak tytułu lub treści" });
     }
 
-    const { title, content, tags, contentEng } = req.body;
     const parsedTags = tags ? JSON.parse(tags) : [];
     const imageUrl = req.file ? req.file.path : null;
 
     const blog = new Blog({
       title,
       content,
+      contentEng, 
       image: imageUrl,
       tags: parsedTags,
-      contentEng,
     });
 
     const savedBlog = await blog.save();
