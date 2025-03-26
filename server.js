@@ -93,8 +93,8 @@ app.get("/api/blogs/title/:title", async (req, res) => {
     // Dekodowanie tytułu z URL
     let decodedTitle = decodeURIComponent(req.params.title.replace(/-/g, ' '));
 
-    // Usuwanie znaku zapytania z tytułu
-    decodedTitle = decodedTitle.replace(/\?/g, '');
+    // Usuwanie znaku zapytania oraz innych niechcianych znaków (np. %3F -> ?)
+    decodedTitle = decodedTitle.replace(/[?%3F]/g, '');
 
     const blog = await Blog.findOne({ title: decodedTitle });
 
@@ -106,6 +106,7 @@ app.get("/api/blogs/title/:title", async (req, res) => {
     res.status(500).json({ message: "❌ Błąd serwera" });
   }
 });
+
 
 
 
