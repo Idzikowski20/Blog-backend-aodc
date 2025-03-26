@@ -90,10 +90,8 @@ app.get("/api/blogs", async (req, res) => {
 // Pobieranie posta po tytule
 app.get("/api/blogs/title/:title", async (req, res) => {
   try {
-    // Zamieniamy myślniki na spacje, aby pasowały do tytułu w bazie danych
     const decodedTitle = decodeURIComponent(req.params.title.replace(/-/g, ' '));
-
-    const blog = await Blog.findOne({ title: decodedTitle });  // Wyszukiwanie po tytule
+    const blog = await Blog.findOne({ title: decodedTitle });
 
     if (!blog) return res.status(404).json({ message: "❌ Post nie znaleziony" });
 
@@ -103,6 +101,7 @@ app.get("/api/blogs/title/:title", async (req, res) => {
     res.status(500).json({ message: "❌ Błąd serwera" });
   }
 });
+
 
 
 
