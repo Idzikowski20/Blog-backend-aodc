@@ -90,14 +90,19 @@ app.get("/api/blogs", async (req, res) => {
 // 📄 Pobieranie posta po tytule
 app.get("/api/blogs/title/:title", async (req, res) => {
   try {
-    const blog = await Blog.findOne({ title: req.params.title });
+    // Dekodowanie tytułu z URL
+    const decodedTitle = decodeURIComponent(req.params.title);
+    const blog = await Blog.findOne({ title: decodedTitle });
+
     if (!blog) return res.status(404).json({ message: "❌ Post nie znaleziony" });
+
     res.json(blog);
   } catch (err) {
     console.error("❌ Błąd pobierania posta:", err);
     res.status(500).json({ message: "❌ Błąd serwera" });
   }
 });
+
 
 
 // ✏️ Aktualizacja posta
