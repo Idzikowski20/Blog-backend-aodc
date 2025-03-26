@@ -87,14 +87,10 @@ app.get("/api/blogs", async (req, res) => {
   }
 });
 
-// Pobieranie posta po tytule
+// Pobieranie posta po tytule (Blog i BlogDetail)
 app.get("/api/blogs/title/:title", async (req, res) => {
   try {
-    // Dekodowanie tytułu z URL
-    let decodedTitle = decodeURIComponent(req.params.title.replace(/-/g, ' '));
-
-    // Usuwanie znaku zapytania z tytułu
-    decodedTitle = decodedTitle.replace(/\?/g, '');
+    const decodedTitle = decodeURIComponent(req.params.title.replace(/-/g, ' '));
 
     const blog = await Blog.findOne({ title: decodedTitle });
 
@@ -107,26 +103,39 @@ app.get("/api/blogs/title/:title", async (req, res) => {
   }
 });
 
-
-
-// ✏️ Aktualizacja posta
-app.put("/api/blogs/:id", upload.single("image"), async (req, res) => {
+// Pobieranie posta po id (AdminPanel, EditPost)
+app.get("/api/blogs/id/:id", async (req, res) => {
   try {
-    const { title, titleEng , content, contentEng, tags } = req.body;
+    const blog = await Blog.findById(req.params.id);
+
+    if (!blog) return res.status(404).json({ message: "❌ Post nie znaleziony" });
+
+    res.json(blog);
+  } catch (err) {
+    console.error("❌ Błąd pobierania posta:", err);
+    res.status(500).json({ message: "❌ Błąd serwera" });
+  }
+});
+
+// ✏️ Aktualizacja posta po id
+app.put("/api/blogs/id/:id", upload.single("image"), async (req, res) => {
+  try {
+    const { title, titleEng, content, contentEng, tags } = req.body;
     if (!title || !titleEng || !content || !contentEng) {
       return res.status(400).json({ message: "❌ Brak tytułu, treści PL lub EN" });
     }
 
     const parsedTags = tags ? JSON.parse(tags) : [];
     const updatedData = { title, titleEng, content, contentEng, tags: parsedTags };
+
     if (req.file) {
-      console.log("Plik obrazu:", req.file);
       updatedData.image = req.file.path;
     }
 
     const updatedPost = await Blog.findByIdAndUpdate(req.params.id, updatedData, { new: true });
 
     if (!updatedPost) return res.status(404).json({ message: "❌ Post nie znaleziony" });
+
     res.json(updatedPost);
   } catch (err) {
     console.error("❌ Błąd aktualizacji posta:", err);
