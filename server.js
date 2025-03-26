@@ -87,10 +87,10 @@ app.get("/api/blogs", async (req, res) => {
   }
 });
 
-// 📄 Pobieranie posta po ID
-app.get("/api/blogs/:id", async (req, res) => {
+// 📄 Pobieranie posta po tytule
+app.get("/api/blogs/title/:title", async (req, res) => {
   try {
-    const blog = await Blog.findById(req.params.id);
+    const blog = await Blog.findOne({ title: req.params.title });
     if (!blog) return res.status(404).json({ message: "❌ Post nie znaleziony" });
     res.json(blog);
   } catch (err) {
@@ -98,6 +98,7 @@ app.get("/api/blogs/:id", async (req, res) => {
     res.status(500).json({ message: "❌ Błąd serwera" });
   }
 });
+
 
 // ✏️ Aktualizacja posta
 app.put("/api/blogs/:id", upload.single("image"), async (req, res) => {
