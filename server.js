@@ -108,29 +108,37 @@ app.get("/api/blogs/title/:title", async (req, res) => {
 
 
 // ✏️ Aktualizacja posta
-app.put("/api/blogs/:id", upload.single("image"), async (req, res) => {
+app.put("/api/blogs/title/:title", upload.single("image"), async (req, res) => {
   try {
-    const { title, titleEng , content, contentEng, tags } = req.body;
+    // Dekodowanie tytułu z URL
+    const decodedTitle = decodeURIComponent(req.params.title.replace(/-/g, ' '));
+
+    const { title, titleEng, content, contentEng, tags } = req.body;
+
     if (!title || !titleEng || !content || !contentEng) {
       return res.status(400).json({ message: "❌ Brak tytułu, treści PL lub EN" });
     }
 
     const parsedTags = tags ? JSON.parse(tags) : [];
     const updatedData = { title, titleEng, content, contentEng, tags: parsedTags };
+
     if (req.file) {
       console.log("Plik obrazu:", req.file);
       updatedData.image = req.file.path;
     }
 
-    const updatedPost = await Blog.findByIdAndUpdate(req.params.id, updatedData, { new: true });
+    // Znalezienie posta po tytule i zaktualizowanie
+    const updatedPost = await Blog.findOneAndUpdate({ title: decodedTitle }, updatedData, { new: true });
 
     if (!updatedPost) return res.status(404).json({ message: "❌ Post nie znaleziony" });
+
     res.json(updatedPost);
   } catch (err) {
     console.error("❌ Błąd aktualizacji posta:", err);
     res.status(500).json({ message: "❌ Błąd serwera przy aktualizacji posta" });
   }
 });
+
 
 // 🗑️ Usuwanie posta
 app.delete("/api/blogs/:id", async (req, res) => {
