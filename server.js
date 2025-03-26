@@ -103,9 +103,6 @@ app.get("/api/blogs/title/:title", async (req, res) => {
   }
 });
 
-
-
-
 // ✏️ Aktualizacja posta
 app.put("/api/blogs/:id", upload.single("image"), async (req, res) => {
   try {
